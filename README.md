@@ -18,7 +18,7 @@ Oscar Augusto Diaz Triana, oscar1485@yahoo.es
 
 Puede vizualizar el conjunto de análisis y predicción de ataques cardíacos - Un conjunto de datos para la clasificación de ataques cardíacos en la siguiente dirección:
 
-[https://github.com/Bengis/nba-gap-cleaning/blob/master/data/nba_out.csv](https://github.com/Bengis/nba-gap-cleaning/blob/master/data/nba_out.csv)
+[https://github.com/oscar1485/Practica_limpieza_y_analisis_de_datos/blob/main/heart.csv](https://github.com/oscar1485/Practica_limpieza_y_analisis_de_datos/blob/main/heart.csv)
 
 ## Licencia
 
