@@ -1,0 +1,433 @@
+---
+title: "Practica_limpieza_y_analisis_de_datos"
+output:
+  pdf_document:
+    toc: yes
+    toc_depth: '2'
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+date: "`r Sys.Date()`"
+---
+
+![](portada.PNG){width="578"}
+
+\pagebreak
+
+# 1. Detalles de la actividad
+
+## 1.1. Descripción
+
+En esta práctica se elabora un caso práctico orientado a aprender a identificar los datos relevantes para un proyecto analítico y usar las herramientas de integración, limpieza, validación y análisis de las mismas.
+
+## 1.2. Objetivos
+
+-   Aprender a aplicar los conocimientos adquiridos y su capacidad de resolución de problemas en entornos nuevos o poco conocidos dentro de contextos más amplios o multidisciplinares.
+
+-   Saber identificar los datos relevantes y los tratamientos necesarios (integración, limpieza y validación) para llevar a cabo un proyecto analítico.
+
+-   Aprender a analizar los datos adecuadamente para abordar la información contenida en los datos.
+
+-   Identificar la mejor representación de los resultados para aportar conclusiones sobre el problema planteado en el proceso analítico.
+
+-   Actuar con los principios éticos y legales relacionados con la manipulación de datos en función del ámbito de aplicación.
+
+-   Desarrollar las habilidades de aprendizaje que les permitan continuar estudiando de un modo que tendrá que ser en gran medida autodirigido o autónomo.
+
+-   Desarrollar la capacidad de búsqueda, gestión y uso de información y recursos en el ámbito de la ciencia de datos.
+
+## 1.3. Competencias
+
+-   Capacidad para extraer, interpretar y analizar datos de diferentes entornos.
+
+-   Uso avanzado de las herramientas de programas estadísticos adecuados para los diferentes problemas de modelización, análisis y visualización de datos.
+
+-   Capacidad para proponer soluciones innovadoras y tomar decisiones.
+
+-   Capacidad para trabajar en equipos multidisciplinarios.
+
+\pagebreak
+
+# 2.Resolución
+
+## 2.1. Descripción del dataset
+
+El conjunto de datos objeto de análisis se ha obtenido a partir de este enlace en [Kaggle](https://www.kaggle.com/datasets/rashikrahmanpritom/heart-attack-analysis-prediction-dataset?resource=download "ver fuente") y está constituido por 14 características (columnas) que presentan 303 registros de personas (filas).
+
+Entre los campos de este conjunto de datos, encontramos los siguientes:
+
+-   **age :** Edad del paciente
+
+-   **sex :** Género: 1 = masculino; 0 = femenino
+
+-   **cp :** Tipo de dolor en el pecho (valores de 0 a 3)
+
+    -   Valor 0: angina típica
+
+    -   Valor 1: angina atípica
+
+    -   Valor 2: dolor no anginoso
+
+    -   Valor 3: asintomático
+
+-   **trtbps** : presión arterial en reposo (en mm Hg)
+
+-   **chol:** Colesterol en mg/dl obtenido a través del sensor de IMC
+
+-   **fbs :** Azúcar en sangre en ayunas \> 120 mg/dl (1 = verdadero; 0 = falso)
+
+-   **restecg:** Resultados electrocardiográficos en reposo (Valores de 0 a 2)
+
+    -   Valor 0: Normal
+
+    -   Valor 1: Anomalía de la onda ST-T (inversiones de la onda T y/o elevación o depresión del ST de \> 0,05 mV)
+
+    -   Valor 2: Muestra hipertrofia ventricular izquierda probable o definida según el criterio de Estes
+
+-   **thalachh** : Máxima frecuencia cardíaca alcanzada
+
+-   **exng :** 0= menos probabilidad de ataque cardíaco 1= más probabilidad de ataque cardíaco
+
+-   **oldpeak:** Depresión del ST inducida por el ejercicio relativo al descanso.
+
+-   **slp:** Pendiente de ST en el pico de ejercicio (Del 0 al 2).
+
+    -   Valor 0: Ascendiente
+
+    -   Valor 1: Plana
+
+    -   Valor 2: Descendente
+
+-   **caa:** Número de vasos principales (0-4) coloreados por fluorospía.
+
+-   **thall :** THAL. (Del 0 al 3). Esta escala no logre identificarla a que equivale cada valor
+
+    -   Valor 0:
+
+    -   Valor 1:
+
+    -   Valor 2:
+
+    -   Valor 3:
+
+-   **Output:** Variable de destino 0 = No tiene enfermedad cardiovascular. 1 = Tiene enfermedad cardiovascular.
+
+```{r}
+#cargue de las librerias que vamos a utilizar
+library(Rcmdr) #trabajar con R commander
+library(ggplot2) # permite trabajar graficar, otra opción
+library(lattice)# permite trabajar factores
+library(moments)# permite trabajar factores
+library(splines)#lebreria complementaria a las primeras
+library(RcmdrMisc)#lebreria complementaria a las primeras
+library(car)#lebreria complementaria a las primeras
+library(carData)#lebreria complementaria a las primeras
+library(sandwich)#lebreria complementaria a las primeras
+```
+
+## 2.2. Importancia y objetivos de los análisis
+
+A partir de este conjunto de datos se plantea la problemática de determinar qué variables influyen más sobre determinar que personas pueden sufrir ataques cardíacos.
+
+Además, se podrá proceder a crear modelos de regresión que permitan predecir que personas pueden sufrir ataques cardíacos en función de sus características y contrastes de hipótesis que ayuden a identificar propiedades interesantes en las muestras que puedan ser inferidas con respecto a la población.
+
+Estos análisis adquieren una gran relevancia en casi cualquier sector relacionado con la salud, ya que con base a este diganostico los medicos especilistas de las diferentes areas del cuerpo podran atender y tratar a las personas para que no le genera cumplicaciones cardiacas al paciente. Igualmente conociendo este diagnostico se pueden generar estrategias para disminuir el riesgo de un ataque cardíaco modificando conductas que pueden aumentar el riesgo o tratando una enfermedad coronaria conocida. Los cambios para un estilo de vida saludable, que incluyen comer alimentos saludables, mantenerse activo, dejar de fumar, controlar el estrés y mantener un peso saludable, pueden ayudar a prevenir la enfermedad cardíaca. Incluso si ya tiene enfermedad coronaria, esos cambios pueden disminuir el riesgo de un ataque cardíaco.
+
+## 2.3. Limpieza de los datos
+
+Antes de comenzar con la limpieza de los datos, procedemos a realizar la lectura del fichero en formato CSV en el que se encuentran los datos. El resultado devuelto por la llamada a la función read.csv() será un objeto data.frame:
+
+```{r}
+# Lectura de datos
+corazon <- read.csv("heart.csv", header = TRUE)
+head(corazon[,1:5])
+```
+
+```{r}
+# Tipo de dato asignado a cada campo
+sapply(corazon, function(x) class(x))
+```
+
+Además, observamos cómo los tipos de datos asignados automáticamente por R a las variables se corresponden con el dominio de estas.
+
+**Nota:** se tenia previsto que los valores desconocidos eran denotados en el dataset mediante el caracter '?'. y se pretendia realizar una sustitución de estos valores por una cadena vacía previa a la lectura, para que R marque estos valores desconocidos como NA (del inglés, Not Available). Esto simplificaría el manejo de los datos en los apartados posteriores, sin embargo el data set no contenia valores desconocidos.
+
+### 2.3.1. Selección de los datos de interés
+
+La gran mayoría de los atributos presentes en el conjunto de datos se corresponden con características que se reúnen de las diferentes personas y que fueron recogidos en forma de registros, por lo que será conveniente tenerlos en consideración durante la realización de los análisis. No se encontro caracterisitcas de las cuales se pudieran presindir de ellas, como para ser eliminadas.
+
+### 2.3.2. Ceros y elementos vacíos
+
+Comúnmente, se utilizan los ceros como centinela para indicar la ausencia de ciertos valores. Sin embargo, no es el caso de este conjunto de datos puesto que, como se comentó durante el apartado relativo a la lectura, no se encontraron valores desconocidos. Así, se procede verificar si los campos contienen elementos vacíos:
+
+```{r}
+# Números de valores desconocidos por campo
+sapply(corazon, function(x) sum(is.na(x)))
+```
+
+Si fuese el caso de encontrar valores desconocidos, deberiamos decidir como manejar estos registros que contienen valores desconocidos para algún campo. Una opción podría ser eliminar esos registros que incluyen este tipo de valores, pero ello supondría desaprovechar información.
+
+Como alternativa, se empleará un método de imputación de valores basado en la similitud o diferencia entre los registros: la imputación basada en k vecinos más próximos (en inglés, kNN-imputation). La elección de esta alternativa se realiza bajo la hipótesis de que nuestros registros guardan cierta relación. No obstante, es mejor trabajar con datos "aproximados" que con los propios elementos vacíos, ya que obtendremos análisis con menor margen de error.
+
+A continuación, se realiza el ejemplo de como se debe realizar la imputación si ubiese campus vacios en todas las caracteristicas
+
+```{r}
+# Imputación de valores mediante la función kNN() del paquete VIM, no aparecerà el masaje de nada que imputar porque como se mencionaba 
+
+suppressWarnings(suppressMessages(library(VIM)))
+
+corazon$age <- kNN(corazon)$age
+corazon$sex <- kNN(corazon)$sex
+corazon$cp <- kNN(corazon)$cp
+corazon$trtbps  <- kNN(corazon)$trtbps 
+corazon$chol  <- kNN(corazon)$chol
+corazon$fbs  <- kNN(corazon)$chol
+corazon$restecg  <- kNN(corazon)$restecg
+corazon$thalachh  <- kNN(corazon)$thalachh
+corazon$exng   <- kNN(corazon)$exng 
+corazon$oldpeak  <- kNN(corazon)$oldpeak
+corazon$slp  <- kNN(corazon)$slp
+corazon$caa  <- kNN(corazon)$caa 
+corazon$thall  <- kNN(corazon)$thall
+corazon$output  <- kNN(corazon)$output
+
+sapply(corazon, function(x) sum(is.na(x)))
+
+```
+
+### 2.3.3. Valores extremos
+
+Los valores extremos o outliers son aquellos que parecen no ser congruentes sin los comparamos con el resto de los datos. Para identificarlos, podemos hacer uso de dos vías: (1) representar un diagrama de caja por cada variable y ver qué valores distan mucho del rango intercuartílico (la caja) o (2) utilizar la función boxplots.stats() de R. Se utilizaran las 2 opciones:
+
+A continuación se mostrarán sólo los valores atípicos para aquellas variables que los contienen:
+
+**Variable** **presión arterial en reposo**
+
+```{r}
+# Valores atípicos para la variable trtbps
+boxplot.stats(corazon$trtbps)$out
+```
+
+```{r}
+# Diagrama de caja para la variable trtbp 
+boxplot(corazon$trtbps)
+title("trtbps")
+```
+
+En la presión arterial en reposo, los valores fuera y alejados de la caja no se tratan de valores extremos que se traduzcan en error de inserción. Si lo vemos en un gráfico plot, se entiende mejor.
+
+```{r}
+plot(corazon$trtbps) 
+#title("Presión arterial en reposo")
+```
+
+En este estudio nos interesa encontrar esos picos en los niveles de presión arterial, ya que se salen del rango recomendable, y lo mismo si fueran demasiado bajos. para esta variable la máxima frecuencia cardíaca alcanzada, podemos determinar que las presión maxima de los pacientes puede estar entre 172 y 200. Sin embargo el manejo de estos valores extremos consistirá en simplemente dejarlos como actualmente están los registros, ya que corresponden a las tomas realizadas a los pacientes.
+
+**Variable colestero**
+
+```{r}
+# Valores atípicos para la variable chol
+boxplot.stats(corazon$chol)$out
+```
+
+En los niveles de colesterol encontramos un caso donde el valor de estos son 564. Aunque es un valor muy alto, tiene sentido ya que esta persona indica enfermedad (valor output = 1) osea que tiene enfermedad cardiovascular.
+
+```{r}
+corazon[which(corazon$chol>500),]
+```
+
+```{r}
+# Diagrama de caja para la variable chol
+boxplot(corazon$chol)
+title("chol")
+```
+
+```{r}
+plot(corazon$chol) 
+title("Coresterol (mg/dl)")
+```
+
+### 2.3.4. Exportación de los datos preprocesados
+
+Despues de haber aplicado sobre el conjunto de datos inicial los procedimientos de integración, validación y limpieza anteriores, procedemos a guardar estos en un nuevo fichero denominado corazon_data_clean.csv:
+
+```{r}
+# Exportación de los datos limpios en .csv
+write.csv(corazon, "corazon_data_clean.csv")
+```
+
+## 2.4. Análisis de los datos
+
+### 2.4.1. Selección de los grupos de datos a analizar
+
+A continuación, se seleccionan los grupos dentro de nuestro conjunto de datos que pueden resultar interesantes para analizar y/o comparar. No obstante, como se verá en el apartado consistente en la realización de pruebas estadísticas, no todos se utilizarán.
+
+```{r}
+# Agrupación por tipo de combustible
+corazon.femenino <- corazon[corazon$sex == "0",]
+corazon.masculino <- corazon[corazon$sex == "1",]
+
+
+```
+
+Para la selección de los grupos de datos analizar, tambien se puede apoyar realizando la relación que pueda existir entre las variables
+
+```{r}
+corazon.numeric <- corazon[,unlist(lapply(corazon, is.numeric))]
+plot(corazon.numeric)
+```
+
+Aparentemente no podemos afirmar que hay relación directa entre dos variables, ya que los gráficos no lo indican con suficiente definición. Por ello, es necesario observar los resultados del coeficiente de correlación mediante la prueba de Spearman, los cuales veremos en apartado de las pruebas estadísticas
+
+A continuación se grafican algunas de las variables que nos permitirian ayudar a realizar la selección de los grupos.
+
+Realizamos un grafica de barras para representar los valores de la variable sexo , para las etiquetas masculino y femenido
+
+```{r}
+barplot(table(corazon$sex), 
+        names.arg= c("Femenino", "Masculino"),
+        main = "Gráfico de barras variable sex",
+        xlab = "Genero", ylab = "Frecuencia",
+        col = c( "red", "darkblue"), 
+        legend.text = table(corazon$sex))
+
+```
+
+Vamos de el data set contine mas registros de hombre que mujeres, se podria suponer que los hombres son las propensos a tener enfernedades cordiovasculaes
+
+Seguidamente se realiza un histograma para conocer la distribución de la variable edad .
+
+```{r}
+hist(corazon$age, main = "Histograma de age", # Frecuencia
+     xlab = "age", ylab = "Frecuencia")
+```
+
+Se ividencia que hay pico de 40 a 45 años, seguidamente se observa que hay mas parsonas con edades entre 50 y 60 años.
+
+Seguidamente se realiza un histograma para conocer la distribución de la variable thalachh.
+
+```{r}
+hist(corazon$thalachh, main = "Histograma de thalachh", # Frecuencia
+     xlab = "thalachh", ylab = "Frecuencia")
+```
+
+Se observa que la frecuencia mas comun de los valores maximos de presión arterial van 140 a 180.
+
+### 2.4.2 Comprobación de la normalidad y homogeneidad de la varianza
+
+Para la comprobación de que los valores que toman nuestras variables cuantitativas provienen de una población distribuida normalmente, utilizaremos la prueba de normalidad de **Anderson-Darling.**
+
+Así, se comprueba que para que cada prueba se obtiene un p-valor superior al nivel de significación prefijado α = 0, 05. Si esto se cumple, entonces se considera que variable en cuestión sigue una distribución normal.
+
+```{r}
+library(nortest)
+alpha = 0.05
+col.names = colnames(corazon)
+for (i in 1:ncol(corazon)) {
+  if (i == 1) cat("Variables que no siguen una distribución normal:\n \n")
+  if (is.integer(corazon[,i]) | is.numeric(corazon[,i])) {
+    p_val = ad.test(corazon[,i])$p.value
+  if (p_val < alpha) {
+  cat(col.names[i])
+  # Formato de salida
+  if (i < ncol(corazon) - 1) cat(", ")
+  if (i %% 7 == 0) cat("\n")
+}
+}
+}
+```
+
+Tambien podemos para asumir normalidad de la muestra. obervar **gráfico de cuantiles** y el **histograma** de cada una de las variables numéricas, además de aplicar el **test de Shapiro-Wilk**.
+
+```{r}
+par(mfrow=c(2,2))
+for(i in 1:ncol(corazon.numeric)) {
+  title <- colnames(corazon.numeric[i])
+  qqnorm(corazon.numeric[,i],main = paste("Diagrama Normal Q-Q para",title))
+  qqline(corazon.numeric[,i],col="red")
+  hist(corazon.numeric[,i],
+        xlab= title,
+        freq = FALSE,
+        main = paste("Histograma de", title))
+  shapiro.test(corazon.numeric[,i])
+  print(paste("Prueba de ", title))
+  print(shapiro.test(corazon.numeric[,i]))
+}
+```
+
+Podemos comprobar que todas las variables pueden ser aproximadas a una distribución normal, a pesar de que no estén normalizadas. Como el tamaño de la muestra es superior a 30, podemos aplicar el **teorema del límite central** y asumir normalidad en la distribución de la muestra.
+
+Estudiamos ahora la homogeneidad de varianzas mediante la aplicación de un **test de Fligner-Killeen**. En este caso, estudiaremos la homogeneidad en cuanto al colesterol los grupos conformados por mujeres frente a los hombres.
+
+```{r}
+fligner.test(chol ~ sex, data = corazon)
+```
+
+No podemos concluir que existe homogeneidad en la varianza de los dos grupos, ya que el p-valor resultante del test es menor al nivel de significancia 0.05 marcado por el nivel de confianza.
+
+Igualmente se realiza lo mismo para estudiar la homogeneidad de varianzas mediante la aplicación de un **test de Fligner-Killeen**, para la tension arterial maxima frente a la edad.
+
+```{r}
+fligner.test(age ~ sex, data = corazon)
+```
+
+Podemos concluir que existe homogeneidad en la varianza de los dos grupos, ya que el p-valor resultante del test es mayor al nivel de significancia 0.05 marcado por el nivel de confianza.
+
+## 2.5. Pruebas estadísticas
+
+### 2.5.1. ¿Qué variables cuantitativas influyen más en el diagnostico?
+
+En primer lugar, procedemos a realizar un análisis de correlación entre las distintas variables para determinar cuáles de ellas ejercen una mayor influencia sobre el el diganostico final del paciente.
+
+Para ello, se utilizará el coeficiente de correlación de Spearman, puesto que hemos visto que tenemos datos que no siguen una distribución normal.
+
+```{r}
+corr_matrix <- matrix(nc = 2, nr = 0)
+colnames(corr_matrix) <- c("estimate", "p-value")
+# Calcular el coeficiente de correlación para cada variable cuantitativa con respecto al campo "Outpu" - Posee enfermedad Cardiovascular
+for (i in 2:(ncol(corazon.numeric))) {
+  spearman_test = cor.test(corazon.numeric[,i],
+                           corazon.numeric[,1],
+                           method = "spearman",
+                           exact = FALSE)
+  corr_coef = spearman_test$estimate
+  p_val = spearman_test$p.value
+  
+  # Se añade una fila nueva a la matriz 
+  pair = matrix(ncol = 2, nrow = 1)
+  pair[1][1] = corr_coef
+  pair[2][1] = p_val
+  corr_matrix <- rbind(corr_matrix, pair)
+  rownames(corr_matrix)[nrow(corr_matrix)] <- colnames(corazon.numeric)[i]
+}
+
+par(mfrow=c(1,1))
+print(corr_matrix)
+```
+
+Así, identificamos cuáles son las variables más correlacionadas con el el diagnostico en función de su proximidad con los valores -1 y +1. Teniendo esto en cuenta, queda patente cómo la variable más relevante en la fijación del dianostico es el **frecuencia cardíaca alcanzada** del paciente. (thalachh)
+
+Nota. Para cada coeficiente de correlación se muestra también su p-valor asociado, puesto que éste puede dar información acerca del peso estadístico de la correlación obtenida.
+
+El valor más alto del coeficiente de correlación (`0.398`) que encontramos respecto a la variable "Outpu" - (Posee enfermedad Cardiovascular), es con la variable de la **máxima frecuencia cardíaca alcanzada**
+
+**2.5.2. ¿La frecuenca cardiaca del paciente es superior si su genero es Hombre?**
+
+La segunda prueba estadística que se aplicará consistirá en un contraste de hipótesis sobre dos muestras para determinar si el diagnostico es postivo dependiendo del tipo de motor del que se trate (estándar o turbo). Para ello, tendremos dos muestras: la primera de ellas se corresponderá con los precios de los coches con motor estándar y, la segunda, con aquellos que presentan un motor turbo.
+
+Se debe destacar que un test paramétrico como el que a continuación se utiliza necesita que los datos sean normales, si la muestra es de tamaño inferior a 30. Como en nuestro caso, n \> 30, el contraste de hipótesis siguiente es válido (aunque podría utilizarse un test no paramétrico como el de Mann-Whitney, que podría resultar ser más eficiente para este caso).
+
+```{r}
+
+```
+
+## 2.6.    
+
+Conclusiones
+
+\pagebreak
+
+# 3.Referencia
